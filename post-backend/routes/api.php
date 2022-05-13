@@ -29,5 +29,6 @@ Route::middleware('auth:api')->group(function(){
     Route::post('/logout',[AuthController::class,'logout']);
     Route::get('/users',[AuthController::class,'index']);
     Route::get('/users/{id}',[AuthController::class,'show']);
-    Route::resource('posts',PostController::class);
+    Route::get('get-search',[PostController::class,'search']);
+    Route::apiResource('posts',PostController::class);
 });

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Node\Expr\FuncCall;
 
 class PostController extends Controller
 {
@@ -17,7 +18,10 @@ class PostController extends Controller
      */
     public function index()
     {
-        $data = Post::orderBy('id','desc')->get();
+        $data = Post::when(request('search'), function ($query) {
+            $query->where('title', 'like', '%' . request('search') . '%');
+            $query->orWhere('description', 'like', '%' . request('search') . '%');
+        })->orderBy('id', 'desc')->paginate(3);
 
         return send_response('All Posts', PostResource::collection($data));
     }
@@ -85,7 +89,7 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        
     }
 
     /**
@@ -106,9 +110,9 @@ class PostController extends Controller
             return send_error('Validation Error', $validator->errors(), 422);
         }
         try {
-                $post->title = $request->title;
-                $post->description = $request->description;
-                $post->save();
+            $post->title = $request->title;
+            $post->description = $request->description;
+            $post->save();
 
             return send_response('Post Update Successfully', new PostResource($post));
         } catch (\Exception $e) {
