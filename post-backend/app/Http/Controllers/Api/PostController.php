@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Post;
+use App\Import\PostsImport;
 use Illuminate\Http\Request;
+use PhpParser\Node\Expr\FuncCall;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
-use PhpParser\Node\Expr\FuncCall;
 
 class PostController extends Controller
 {
@@ -137,5 +139,26 @@ class PostController extends Controller
         } catch (\Exception $e) {
             return send_error('Something went wrong', $e->getCode());
         }
+    }
+
+    public function import(Request $request)
+    {
+        Post::truncate();
+        
+    if($request->hasFile('file')){
+        $data = $request->file('file');
+        Excel::import(new PostsImport, $data);
+        return response()->json([
+            "success" => true,
+            "data" =>$data,
+            "message" => "post csv import successfully.",
+        ]);
+    }else{
+        return response()->json([
+            "message" => "error"
+
+        ]) ;  }
+
+        
     }
 }
