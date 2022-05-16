@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use PhpParser\Node\Expr\FuncCall;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\PostsCollection;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 
@@ -25,7 +26,14 @@ class PostController extends Controller
             $query->orWhere('description', 'like', '%' . request('search') . '%');
         })->orderBy('id', 'desc')->paginate(3);
 
-        return send_response('All Posts', PostResource::collection($data));
+        $response = [
+            'status' => true,
+            'message' => "All posts",
+            'data' => (new PostsCollection($data))->response()->getData()
+          ];
+          return response()->json($response);
+
+        return send_response('All Posts', new PostsCollection($data));
     }
 
     /**
@@ -91,7 +99,7 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        
+
     }
 
     /**
@@ -144,7 +152,7 @@ class PostController extends Controller
     public function import(Request $request)
     {
         Post::truncate();
-        
+
     if($request->hasFile('file')){
         $data = $request->file('file');
         Excel::import(new PostsImport, $data);
@@ -159,6 +167,6 @@ class PostController extends Controller
 
         ]) ;  }
 
-        
+
     }
 }
