@@ -81,14 +81,4 @@ class AuthController extends Controller
         $data = User::all();
         return send_response('All Users', $data);
     }
-
-    public function show($id)
-    {
-        $user = User::find($id);
-        if ($user) {
-            return send_response('Success', $user);
-        } else {
-            return send_error('User Data Not Found');
-        }
-    }
 }
