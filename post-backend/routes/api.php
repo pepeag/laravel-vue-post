@@ -35,4 +35,6 @@ Route::middleware('auth:api')->group(function(){
     Route::get('users',[UserController::class, 'index']);
     Route::get('/users/{id}',[UserController::class,'show']);
     Route::put('/users/{id}',[UserController::class,'update']);
+    Route::get('/get-user',[UserController::class,'getUser']);
+    Route::get('/delete-user/{id}',[UserController::class,'deleteUser']);
 });

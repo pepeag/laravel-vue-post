@@ -19,8 +19,8 @@ class PostsCollection extends ResourceCollection
                 'id' => $data->id,
                 'title' => $data->title,
                 'description' => $data->description,
-                'created_at' => $data->created_at->format('Y-m-d H:i:s'),
-                'updated_at' => $data->updated_at->format('Y-m-d H:i:s')
+                'created_at' => $data->created_at,
+                'updated_at' => $data->updated_at
             ];
         });
     }
