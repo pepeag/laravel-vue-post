@@ -12,7 +12,10 @@ class UserController extends Controller
 {
     public function index()
     {
-        $data = User::orderBy('id', 'desc')->paginate(2);
+        $data = User::when(request('search'), function ($query) {
+            $query->where('name', 'like', '%' . request('search') . '%');
+            $query->orWhere('email', 'like', '%' . request('search') . '%');
+        })->orderBy('id', 'desc')->paginate(3);
 
         return send_response('All Users', $data);
     }

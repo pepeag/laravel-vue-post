@@ -14,7 +14,7 @@ class PostsCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        return $this->collection->transform(function($data){
+        return $this->collection->transform(function ($data) {
             return [
                 'id' => $data->id,
                 'title' => $data->title,

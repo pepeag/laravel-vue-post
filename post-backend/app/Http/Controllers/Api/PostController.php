@@ -30,10 +30,10 @@ class PostController extends Controller
             'status' => true,
             'message' => "All posts",
             'data' => (new PostsCollection($data))->response()->getData()
-          ];
-          return response()->json($response);
+        ];
+        return response()->json($response);
 
-        return send_response('All Posts', new PostsCollection($data));
+        // return send_response('All Posts', new PostsCollection($data));
     }
 
     /**
@@ -99,7 +99,6 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-
     }
 
     /**
@@ -151,22 +150,19 @@ class PostController extends Controller
 
     public function import(Request $request)
     {
-        Post::truncate();
-
-    if($request->hasFile('file')){
-        $data = $request->file('file');
-        Excel::import(new PostsImport, $data);
-        return response()->json([
-            "success" => true,
-            "data" =>$data,
-            "message" => "post csv import successfully.",
-        ]);
-    }else{
-        return response()->json([
-            "message" => "error"
-
-        ]) ;  }
-
-
+        if ($request->hasFile('file')) {
+            Post::truncate();
+            $data = $request->file('file');
+            Excel::import(new PostsImport, $data);
+            return response()->json([
+                "success" => true,
+                "data" => $data,
+                "message" => "Post Csv Import Successfully.",
+            ]);
+        } else {
+            return send_error([
+                "message" => "Choose file"
+            ]);
+        }
     }
 }
