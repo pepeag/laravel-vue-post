@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Post;
-use App\Import\PostsImport;
 use Illuminate\Http\Request;
-use PhpParser\Node\Expr\FuncCall;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\PostsCollection;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use App\Contracts\Service\PostServiceInterface;
 
 class PostController extends Controller
 {
+    private $postService;
+    public function __construct(PostServiceInterface $postService)
+    {
+        $this->postService = $postService;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -21,15 +24,12 @@ class PostController extends Controller
      */
     public function index()
     {
-        $data = Post::when(request('search'), function ($query) {
-            $query->where('title', 'like', '%' . request('search') . '%');
-            $query->orWhere('description', 'like', '%' . request('search') . '%');
-        })->orderBy('id', 'desc')->paginate(3);
-
+        $data = $this->postService->index();
+        $data = (new PostsCollection($data))->response()->getData();
         $response = [
             'status' => true,
             'message' => "All posts",
-            'data' => (new PostsCollection($data))->response()->getData()
+            'data' => $data
         ];
         return response()->json($response);
 
@@ -64,10 +64,7 @@ class PostController extends Controller
         }
 
         try {
-            $post = Post::create([
-                'title' => $request->title,
-                'description' => $request->description,
-            ]);
+            $post = $this->postService->store($request->all());
 
             return send_response('Post Create Successfully', new PostResource($post));
         } catch (\Exception $e) {
@@ -83,7 +80,7 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = Post::find($id);
+        $post = $this->postService->show($id);
         if ($post) {
             return send_response('Success', PostResource::make($post));
         } else {
@@ -118,10 +115,10 @@ class PostController extends Controller
         if ($validator->fails()) {
             return send_error('Validation Error', $validator->errors(), 422);
         }
+
         try {
-            $post->title = $request->title;
-            $post->description = $request->description;
-            $post->save();
+
+            $post = $this->postService->update($request->all(), $post);
 
             return send_response('Post Update Successfully', new PostResource($post));
         } catch (\Exception $e) {
@@ -138,10 +135,7 @@ class PostController extends Controller
     public function destroy($id)
     {
         try {
-            $post = Post::find($id);
-            if ($post) {
-                $post->delete();
-            }
+            $this->postService->delete($id);
             return send_response('Post Delete Success', []);
         } catch (\Exception $e) {
             return send_error('Something went wrong', $e->getCode());
@@ -150,19 +144,11 @@ class PostController extends Controller
 
     public function import(Request $request)
     {
-        if ($request->hasFile('file')) {
-            Post::truncate();
-            $data = $request->file('file');
-            Excel::import(new PostsImport, $data);
-            return response()->json([
-                "success" => true,
-                "data" => $data,
-                "message" => "Post Csv Import Successfully.",
-            ]);
-        } else {
-            return send_error([
-                "message" => "Choose file"
-            ]);
-        }
+        $data = $this->postService->import($request);
+        return response()->json([
+            "success" => true,
+            "data" => $data,
+            "message" => "Post Csv Import Successfully.",
+        ]);
     }
 }

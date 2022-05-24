@@ -19,8 +19,8 @@ class PostsImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         return new Post([
-            "title" => trim($row['title'],'"='),
-            "description" => trim($row['description'],'"='),
+            "title" => trim($row['title'], '"='),
+            "description" => trim($row['description'], '"='),
         ]);
     }
 }

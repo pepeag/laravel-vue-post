@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Contracts\Service\AuthServiceInterface;
 
 class AuthController extends Controller
 {
+    private $authService;
+    public function __construct(AuthServiceInterface $authService)
+    {
+        $this->authService = $authService;
+    }
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -30,7 +35,7 @@ class AuthController extends Controller
 
             return send_response('You are successfully logged in', $data);
         } else {
-            return send_error('Unauthorised', '', 401);
+            return send_error('Unauthorised User', '', 401);
         }
 
         try {
@@ -51,11 +56,8 @@ class AuthController extends Controller
         }
 
         try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+
+            $user = $this->authService->register($request);
 
             $data = [
                 'name' => $user->name,
@@ -68,15 +70,15 @@ class AuthController extends Controller
         }
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
         Auth::user()->token()->revoke();
         return response()->json(['message' => 'successfully logout']);
     }
-    
+
     public function index()
     {
-        $data = User::all();
+        $data = $this->authService->index();
         return send_response('All Users', $data);
     }
 }
